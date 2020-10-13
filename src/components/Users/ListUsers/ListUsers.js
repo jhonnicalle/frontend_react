@@ -1,4 +1,4 @@
-import React, { Component } from 'react'
+import React, { Component, useEffect } from 'react'
 import UserDataService from "../../../services/user.service";
 import {useStyles, useStyles1} from './ListUsers.styles'
 import Table from '@material-ui/core/Table';
@@ -8,24 +8,15 @@ import TableContainer from '@material-ui/core/TableContainer';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
-import { Container, Fab, IconButton, useTheme } from '@material-ui/core';
+import { Container, Fab, IconButton, TextField, useTheme } from '@material-ui/core';
 import { Add, Delete, Edit, FirstPage, KeyboardArrowLeft, KeyboardArrowRight, LastPage } from '@material-ui/icons';
 import { Link, Redirect, Route } from 'react-router-dom';
 import AddUser from '../AddUsers/AddUser';
 
 
-const createData = (name, phone_number, address, email, options) => {
-  return { name, phone_number, address, email, options }
-}
-
-const rows = [
-  createData('Frozen yoghurt', 159, 6.0, 24, 4.0),
-  createData('Ice cream sandwich', 237, 9.0, 37, 4.3),
-  createData('Eclair', 262, 16.0, 24, 6.0),
-  createData('Cupcake', 305, 3.7, 67, 4.3),
-  createData('Gingerbread', 356, 16.0, 49, 3.9),
-];
-
+// const createData = (name, phone_number, address, email, options) => {
+//   return { name, phone_number, address, email, options }
+// }
 
 class ListUsers extends Component {
   state = {
@@ -66,35 +57,36 @@ class ListUsers extends Component {
     this.getPosts();
   }
 
-  renderAddUser = ({ match: { params: { id } } }) => {
-    if (this.state.loading) return null;
-    const post = find(this.state.posts, { id: Number(id) });
+  // renderAddUser = ({ match: { params: { id } } }) => {
+  //   if (this.state.loading) return null;
+  //   const post = find(this.state.posts, { id: Number(id) });
 
-    if (!post && id !== 'new') return <Redirect to="/posts" />;
+  //   if (!post && id !== 'new') return <Redirect to="/posts" />;
 
-    return <AddUser post={post} onSave={this.savePost} />;
-  };
-
-  deleteUser(user) {
-    if (window.confirm(`Are you sure you want to delete "${user.name}"`)) {
-      UserDataService.deleteUser(user.id)
-      .then(response => {
-        console.log(response.data);
-        this.getUsers();
-        
-      })
-      .catch(e => {
-        console.log(e);
-      });
-      this.getUsers();
-    }
-  }
+  //   return <AddUser post={post} onSave={this.savePost} />;
+  // };
 
   
   
+
   render() {
     const classes = useStyles;
     const {users} = this.state
+
+    const deleteUser = async(user) => {
+      if (window.confirm(`¿Estas seguro que quieres eliminar el usuario "${user.name}"?`)) {
+        await UserDataService.deleteUser(user.id)
+        .then(response => {
+          console.log(response.data);
+          this.getUsers();
+        })
+        .catch(e => {
+          console.log(e);
+        });
+        this.getUsers();
+      }
+    }
+
     return (
       <Container>
         <TableContainer component={Paper}>
@@ -121,10 +113,9 @@ class ListUsers extends Component {
                   <IconButton aria-label="edit">
                     <Edit />
                   </IconButton>
-                  <IconButton aria-label="delete" onClick={this.deleteUser(user)}>
+                  <IconButton aria-label="delete" onClick={() => deleteUser(user)}>
                     <Delete />
-                  </IconButton>
-                  
+                  </IconButton>                  
                   </TableCell>
                 </TableRow>
               ))}
@@ -140,6 +131,7 @@ class ListUsers extends Component {
         >
           <Add />
         </Fab>  
+        
         <Route exact path="/users/:id" render={this.renderAddUser} />
     </Container>
     );
